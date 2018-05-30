@@ -1,0 +1,91 @@
+{
+  "id": "b7921f42-9909-4b6b-958d-3aa96c2b8473",
+  "name": "DeployRunbooks",
+  "friendlyName": "Deploy Azure Automation Runbooks",
+  "description": "Deploy Azure Automation Runbooks",
+  "helpMarkDown": "",
+  "author": "Melvin Vermeer",
+  "category": "Deploy",
+  "visibility": [
+    "Build",
+    "Release"
+  ],
+  "version": {
+    "Major": 1,
+    "Minor": 0,
+    "Patch": 0
+  },
+  "demands": [
+    "azureps"
+  ],
+  "minimumAgentVersion": "2.0.0",
+  "inputs": [
+    {
+      "name": "ConnectedServiceNameSelector",
+      "type": "pickList",
+      "label": "Azure Connection Type",
+      "required": true,
+      "helpMarkDown": "",
+      "defaultValue": "ConnectedServiceNameARM",
+      "options": {
+        "ConnectedServiceNameARM": "Azure Resource Manager"
+      }
+    },
+    {
+      "name": "ConnectedServiceNameARM",
+      "type": "connectedService:AzureRM",
+      "label": "Azure Subscription",
+      "defaultValue": "",
+      "required": true,
+      "helpMarkDown": "Azure Resource Manager subscription to configure before running PowerShell",
+      "visibleRule": "ConnectedServiceNameSelector = ConnectedServiceNameARM"
+    },
+    {
+      "name": "ResourceGroupName",
+      "type": "pickList",
+      "label": "Resource Group",
+      "required": true,
+      "helpMarkDown": "Provide the name of a resource group.",
+      "visibleRule": "ConnectedServiceNameARM != \"\""
+    },
+    {
+      "name": "AutomationAccount",
+      "type": "pickList",
+      "label": "Automation Account",
+      "required": true,
+      "helpMarkDown": "Select the automation account",
+      "visibleRule": "ResourceGroupName != \"\""
+    },
+    {
+      "name": "RunbookFiles",
+      "type": "filePath",
+      "label": "Runbooks",
+      "defaultValue": "",
+      "required": true,
+      "helpMarkDown": "Absolute path of the source folder containing the runbooks, or a single runbook file."
+    }
+  ],
+  "dataSourceBindings": [
+    {
+      "target": "ResourceGroupName",
+      "endpointId": "$(ConnectedServiceNameARM)",
+      "dataSourceName": "AzureResourceGroups"
+    },
+    {
+      "target": "AutomationAccount",
+      "endpointId": "$(ConnectedServiceNameARM)",
+      "dataSourceName": "AzureRMResourcesInRGBasedOnType",
+      "parameters": {
+        "ResourceGroupName": "$(ResourceGroupName)",
+        "ResourceType": "Microsoft.Automation/automationAccounts"
+      },
+      "resultTemplate": "{ \"Value\" : \"{{{name}}}\", \"DisplayValue\" : \"{{{name}}}\" }"
+    }
+  ],
+  "instanceNameFormat": "Deploy Azure Automation Runbooks",
+  "execution": {
+    "AzurePowerShell": {
+      "target": "Deploy-Runbooks.ps1"
+    }
+  }
+}
